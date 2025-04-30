@@ -1,10 +1,10 @@
 from django.urls import path
-from .views import BusinessLogicView, PromptView
+from .views import GptRequestView, PromptView
 
 
 app_name = "content_gen"
 
 urlpatterns = [
-    path('protected-endpoint/', BusinessLogicView.as_view(), name='business_logic_endpoint'),
+    path('generate/', GptRequestView.as_view(), name='generate_endpoint'),
     path('prompt/', PromptView.as_view(), name='prompt_endpoint'),
 ]
