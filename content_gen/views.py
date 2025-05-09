@@ -1,10 +1,11 @@
+from openai import OpenAI
 from django.conf import settings
 from rest_framework import status
+from .models import UserRequestTrack
 from rest_framework.views import APIView
-from .serializers import PromptSerializer, GptResponseSerializer
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from openai import OpenAI
+from .serializers import PromptSerializer, GptResponseSerializer
 
 
 class GptRequestView(APIView):
@@ -21,6 +22,8 @@ class GptRequestView(APIView):
                 if response.get("finish_reason", "") != 'stop':
                     return Response({"error": "GPT was unable to complete the request due to an internal error or because the output exceeded the maximum token limit."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+                self.save_data(request.user, serializer.validated_data, response)
+
                 return Response({
                     "message": response.get("message"),
                     "input_token": response.get("input_token"),
@@ -31,6 +34,20 @@ class GptRequestView(APIView):
                 return Response({"error": "Invalid prompt data"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Invalid request body"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def save_data(self, user, request_data, gpt_response_data):
+
+        user_data = UserRequestTrack(
+            user=user,
+            difficulty=request_data.get("difficulty"),
+            question_type=request_data.get("question_type"),
+            topic=request_data.get("topic"),
+            subtopic=request_data.get("subtopic"),
+            question_count=request_data.get("number_of_question"),
+            input_token=gpt_response_data.get("input_token"),
+            output_token=gpt_response_data.get("output_token")
+        )
+        user_data.save()
 
     def get_response_from_gpt(self, prompt):
 
@@ -55,7 +72,6 @@ class GptRequestView(APIView):
 
         return result
 
-
 class PromptView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -74,9 +90,13 @@ class PromptView(APIView):
     def get_prompt(self, request_type):
 
         file_name = {
-            "mcq": "temp.txt",
-            "mcq_cpp": "mcq_cpp.txt",
-            "ca_mcq": "ca_prompt_txt",
+            "mcq":               "temp.txt",
+            "ca_mcq_cpp":        "ca_mcq_cpp.txt",
+            "ca_mcq_python":     "ca_mcq_python.txt",
+            "ca_mcq_java":       "ca_mcq_java.txt",
+            "ca_mcq_c":          "ca_mcq_c.txt",
+            "ca_mcq_javascript": "ca_mcq_javascript.txt",
+            "ca_mcq_sql":        "ca_mcq_sql.txt",
         }
 
         with open(settings.BASE_DIR / 'prompts' / file_name.get(request_type, 'no_file.txt')) as f:
