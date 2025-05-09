@@ -5,3 +5,9 @@ class PromptSerializer(serializers.Serializer):
 
 class GptResponseSerializer(serializers.Serializer):
     prompt = serializers.CharField()
+    difficulty = serializers.CharField()
+    question_type = serializers.CharField()
+    topic = serializers.CharField()
+    subtopic = serializers.CharField()
+    number_of_question = serializers.IntegerField()
+

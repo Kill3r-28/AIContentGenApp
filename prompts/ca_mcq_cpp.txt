@@ -78,6 +78,8 @@ Use the below-provided C++ algorithm questions and concepts for your reference.
 <Section>
 
 
+
+
 </Section>
 ---
 
@@ -132,6 +134,9 @@ Generate the questions using the following JSON format:
 ]
 ```
 
-**Note**: Output should only genarated from Reference Questions content.
+**Note**:
+- Output should only generated from Reference Questions content.
+- Make sure your response will be json string in the given format and which can be easily parsed to json object.
+- [IMPORTANT] Your responses should only contain the json without any backtick or any kind of formatting. It should be a single  json string which can be parsed into json directly.
 
 ---
