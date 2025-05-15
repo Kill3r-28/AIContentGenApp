@@ -20,7 +20,7 @@ class GptRequestView(APIView):
                 response = self.get_response_from_gpt(prompt)
 
                 if response.get("finish_reason", "") != 'stop':
-                    return Response({"error": "GPT was unable to complete the request due to an internal error or because the output exceeded the maximum token limit."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response({"error": "GPT was unable to complete the request due to an internal error or because the output exceeded the maximum token limit."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
                 self.save_data(request.user, serializer.validated_data, response)
 
