@@ -11,3 +11,4 @@ class GptResponseSerializer(serializers.Serializer):
     subtopic = serializers.CharField()
     number_of_question = serializers.IntegerField()
 
+

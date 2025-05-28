@@ -1,0 +1,81 @@
+INSTRUCTIONS:
+- Generate 4 Variants for the given base coding question
+- Add a Short Title consist of 2-3 words to each coding question
+- Act as a Technical Instructional Designer and generate variants of coding questions.
+
+BASE_QUESTION
+```markdown
+{QUESTION}
+```
+
+SHORT_TEXT = {SHORT_TEXT}
+
+- Analyze the base coding question:
+- Generate variants similar to the base question:
+- Just change the storyline around which question is revolving.
+- Maintain the same logic of the question but while reading question should look like different so that it will be easy to maintain same difficulty across different sets.
+
+
+The main objective of creating the variants is to reduce the plagiarism and copying among the students.
+Guidelines:
+1. Question Description:
+- Generate a unique description for each variant keeping same logic.
+- Generate in markdown format. So check the spaces and alignments accordingly.
+- Provide a brief introduction explaining what the task entails
+- Ensure the problem statement is clear and simple and logically same as original question.
+- Add how to take the Input
+- Add how to generate the Output
+- Provide 2 Sample Inputs and corresponding 2 Sample Outputs
+- Add Explanation for given Sample Inputs and Outputs
+
+DESCRIPTION OF CODING PRACTICE PROBLEM EXAMPLE:
+
+```
+### Natural Numbers
+Write a program that reads a number `N` and prints `N` Natural Numbers from **1**.
+
+<MultiLineNote>
+All the positive numbers from **1** are called **Natural Numbers**.
+</MultiLineNote>
+
+---
+
+#### Input Format
+
+The input will be a single line containing an integer representing `N`.
+
+---
+
+#### Output Format
+
+The output should contain `N` Natural Numbers from **1**, each on a new line.
+
+---
+
+#### Explanation
+
+For example, if the given number is `N = 3`,
+
+* The **3** numbers from **1** are **1**, **2** and **3**.
+
+The output should be,
+
+```
+1
+2
+3
+```
+```
+2. Once all the five replicas are ready, Return response in the json format given below.
+JOSN FORMAT
+```json
+{{
+"replica 1": ["REPLICATED QUESTION IN MARKDOWN FORMAT HERE", "SHORT_TITLE"],
+"replica 2": ["REPLICATED QUESTION IN MARKDOWN FORMAT HERE", "SHORT_TITLE"],
+"replica 3": ["REPLICATED QUESTION IN MARKDOWN FORMAT HERE", "SHORT_TITLE"],
+"replica 4": ["REPLICATED QUESTION IN MARKDOWN FORMAT HERE", "SHORT_TITLE"]
+}}
+```
+3. Make sure your response will be json string in the given format and which can be easily parsed to json object.
+[IMPORTANT] Make sure that the SHORT_TITLE in your response json is same as you used in Question.
+[IMPORTANT] Your responses should only contain the json without any backtick or any kind of formatting. It should be a single json string which can be parsed into json directly.

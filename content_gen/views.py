@@ -1,3 +1,6 @@
+import json
+import re
+from django.core.serializers import serialize
 from openai import OpenAI
 from django.conf import settings
 from rest_framework import status
@@ -101,4 +104,102 @@ class PromptView(APIView):
 
         with open(settings.BASE_DIR / 'prompts' / file_name.get(request_type, 'no_file.txt')) as f:
             return f.read()
+
+class CodingReplicatorView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = json.loads(request.body)
+        base_questions = data.get('data', None)
+
+        with open(settings.BASE_DIR / 'prompts' / 'coding_replication.txt') as f:
+            base_prompt = f.read().strip()
+
+        if base_questions is not None:
+            replicas = {f"question{i+1}": [] for i in range(len(base_questions))}
+            input_token, output_token = 0,0
+            try:
+                for i, question in enumerate(base_questions):
+                    question_text = question['question_text']
+                    question_short_text = question['short_text']
+
+                    # prompt = base_prompt
+
+                    prompt = base_prompt.format(QUESTION=question_text, SHORT_TEXT=question_short_text)
+
+                    response = self.get_response_from_gpt(prompt)
+
+                    if response.get("finish_reason", "") != 'stop':
+                        return Response({"error": "GPT was unable to complete the request due to an internal error or because the output exceeded the maximum token limit."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+                    input_token+=response.get("input_token")
+                    output_token+=response.get("output_token")
+                    replicated_questions = json.loads(self.clean_json_string(response.get("message")))
+                    print('______________________________________________')
+                    for key in replicated_questions.keys():
+                        new_question = question
+                        new_question['question_text'] = replicated_questions[key][0]
+                        new_question['short_text'] = replicated_questions[key][1]
+                        # print(replicated_questions[key][1])
+                        # print(replicated_questions[key][0])
+                        replicas[f"question{i+1}"].append(new_question)
+
+                self.save_data(request.user, len(base_questions)*4, input_token, output_token)
+
+                return Response({
+                    "message": replicas,
+                    "input_token": input_token,
+                    "output_token": output_token,
+                    "total_token": input_token+output_token,
+                                 }, status=status.HTTP_200_OK)
+
+            except json.JSONDecodeError as e:
+                return Response({"error": f"JSONDecodeError: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Invalid request body"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def save_data(self, user, question_count, input_token, output_token):
+
+        user_data = UserRequestTrack(
+            user=user,
+            question_type="Coding",
+            topic="REPLICATION",
+            question_count=question_count,
+            input_token=input_token,
+            output_token=output_token
+        )
+        user_data.save()
+
+    def get_response_from_gpt(self, prompt):
+
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        result = {
+            "message": completion.choices[0].message.content,
+            "input_token": completion.usage.prompt_tokens,
+            "output_token": completion.usage.completion_tokens,
+            "total_token": completion.usage.total_tokens,
+            "finish_reason": completion.choices[0].finish_reason
+        }
+
+        return result
+
+    def clean_json_string(self, raw_str):
+        cleaned = re.sub(r'^\s*\w+\s*=\s*', '', raw_str, flags=re.IGNORECASE)
+        cleaned = re.sub(r'^```[a-zA-Z]*', '', cleaned)
+        cleaned = re.sub(r'```$', '', cleaned)
+        cleaned = cleaned.replace('`', '')
+        cleaned = cleaned.strip()
+        return cleaned
 
